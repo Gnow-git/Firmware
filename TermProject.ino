@@ -24,26 +24,23 @@ void loop()
  {
  
   IR.Recv(dta);
-  //Serial.print("입력 신호 :");
-  //Serial.print(dta[D_DATA+3], HEX);
-  //Serial.print("\n");
   
   data = String(dta[D_DATA+3], HEX);
   
   data.toUpperCase(); // 대문자 처리
 
   num = numberset(data);  // 버튼 지정
-  //Serial.print("변환된 신호 :");
-  //Serial.print(num);
-  //Serial.print("\n");
+
 
   if(data == "4F"){   // 리모컨의 C를 누를 경우
-  Serial.print("초기화");
+  Serial.print("초기화 : ");
   total = number_a = number_b = sw = 0;
   Serial.print(total);
   Serial.print(number_a);
   Serial.print(number_b);
   Serial.print("\n");
+  }else if(data == "3D"){ // 리모컨의 취소 버튼을 누를 경우
+    cancle();
   }else 
     caculator(num); // 숫자 저장
  }
@@ -52,33 +49,57 @@ void loop()
 void caculator(int num){
    if (num == 11){  // + 누르면
     sw = 1;
+    Serial.print("더하기 \n");
   }else if(num == 12){  // - 누르면
     sw = 2;
-  } else if (num >= 0 && num <= 9){
-    if(sw == 0){
-      number_a = number_a *10 + num;
-      Serial.print("a에 저장된 숫자 :");
-      Serial.print(number_a);
-      Serial.print("\n");
-    }
-    else if(sw == 1 || sw == 2){
-     number_b = number_b *10 + num;
-      Serial.print("b에 저장된 숫자 :");
-      Serial.print(number_b);
-      Serial.print("\n"); 
-    }
-  }else if(num == 13 && sw == 1){
+    Serial.print("빼기 \n");
+  } else if (num >= 0 && num <= 9){ // 0 ~ 9 사이의 숫자를 입력하면
+      if(sw == 0){
+        number_a = number_a *10 + num;
+        Serial.print("a에 저장된 숫자 :");
+        Serial.print(number_a);
+        Serial.print("\n");
+      }
+      else if(sw == 1 || sw == 2){
+       number_b = number_b *10 + num;
+        Serial.print("b에 저장된 숫자 :");
+        Serial.print(number_b);
+        Serial.print("\n"); 
+      }
+  }else if(num == 13 && sw == 1){ // 더하기 결과
     total = number_a + number_b;
       Serial.print("합산 :");
       Serial.print(total);
       Serial.print("\n");
-  }else if(num == 13 && sw == 2){
+  }else if(num == 13 && sw == 2){ // 빼기 결과
      total = number_a - number_b;
       Serial.print("빼기 :");
       Serial.print(total);
       Serial.print("\n");
   }
    
+}
+
+void cancle(){    // 숫자 취소
+  if (sw == 0 && number_a != 0){  // 첫번째 숫자 입력 받을 차례이며 0이 아닌 경우
+    number_a = number_a / 10; // 마지막 숫자 취소
+    Serial.print("a에 저장된 숫자 :");
+    Serial.print(number_a);
+    Serial.print("\n");
+  } else if (sw == 1 || sw == 2){ // 두번째 입력 받을 차례이며
+     if(number_b != 0){ // 0이 아닌 경우
+      number_b = number_b / 10; // 마지막 숫자 취소
+      Serial.print("b에 저장된 숫자 :");
+      Serial.print(number_b);
+      Serial.print("\n");
+     }else {
+      Serial.print("두번째 숫자를 입력해 주세요");
+      Serial.print("\n");
+     }
+    }else if(number_a == 0){ 
+    Serial.print("첫번째 숫자를 입력해 주세요");
+    Serial.print("\n");
+    }
 }
 
 int numberset(String data){
