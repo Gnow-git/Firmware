@@ -1,17 +1,22 @@
 #include "IRSendRev.h" // 소스 코드 폴더에 복사 (파일 3 개)
 #define IR_OUT_PIN 3 // IR 수신기를 D5 에 연결. D3 을 제외한 핀 사용 가능
-#include "string.h"
+#define CLK 10   // 4-digit display 의 CLK 핀을 지정
+#define DIO 11   // 4-digit display 의 DIO 핀을 지정
+#include <TM1637Display.h>// 4-digit display 사용하기 위한 헤더 파일을 지정
+TM1637Display FND(CLK, DIO); // TM1637Display 객체를 생성
+
 unsigned char dta[20];
 String data;
-int case_num, num, init_num = 1;
+int case_num, num;
 int count = 0;
-//unsigned char number[20];
 int number_a, number_b, sw, total, number;
 
 void setup()
 {
  Serial.begin(9600); // 직렬 통신 초기화
  IR.Init(IR_OUT_PIN); // IR 루틴 초기화
+ FND.setBrightness(0x04); // 4-digit display 의 밝기 지정
+ FND.showNumberDec(0); // 초기 0으로 출력
  Serial.println("start");
 }
 
@@ -32,15 +37,16 @@ void loop()
   num = numberset(data);  // 버튼 지정
 
 
-  if(data == "4F"){   // 리모컨의 C를 누를 경우
+  if(data == "4F"){   // 리모컨의 C(4F)를 누를 경우
   Serial.print("초기화 : ");
   total = number_a = number_b = sw = 0;
+  FND.showNumberDec(number_a);
   Serial.print(total);
   Serial.print(number_a);
   Serial.print(number_b);
   Serial.print("\n");
-  }else if(data == "3D"){ // 리모컨의 취소 버튼을 누를 경우
-    cancle();
+  }else if(data == "3D"){ // 리모컨의 취소(3D) 버튼을 누를 경우
+    cancle(); // 마지막 숫자 취소
   }else 
     caculator(num); // 숫자 저장
  }
@@ -56,18 +62,21 @@ void caculator(int num){
   } else if (num >= 0 && num <= 9){ // 0 ~ 9 사이의 숫자를 입력하면
       if(sw == 0){
         number_a = number_a *10 + num;
+        FND.showNumberDec(number_a);
         Serial.print("a에 저장된 숫자 :");
         Serial.print(number_a);
         Serial.print("\n");
       }
       else if(sw == 1 || sw == 2){
        number_b = number_b *10 + num;
+       FND.showNumberDec(number_b);
         Serial.print("b에 저장된 숫자 :");
         Serial.print(number_b);
         Serial.print("\n"); 
       }
   }else if(num == 13 && sw == 1){ // 더하기 결과
     total = number_a + number_b;
+    FND.showNumberDec(total);
       Serial.print("합산 :");
       Serial.print(total);
       Serial.print("\n");
@@ -76,6 +85,7 @@ void caculator(int num){
     sw = 0;
   }else if(num == 13 && sw == 2){ // 빼기 결과
      total = number_a - number_b;
+     FND.showNumberDec(total);
       Serial.print("빼기 :");
       Serial.print(total);
       Serial.print("\n");
@@ -84,6 +94,7 @@ void caculator(int num){
     sw = 0;
   }else if(num == 13){  // 첫번째 숫자 입력 후 엔터를 입력 했을 경우
     total = number_a;
+    FND.showNumberDec(total);
     Serial.print("결과 :");
       Serial.print(total);
       Serial.print("\n");
@@ -95,12 +106,14 @@ void caculator(int num){
 void cancle(){    // 숫자 취소
   if (sw == 0 && number_a != 0){  // 첫번째 숫자 입력 받을 차례이며 0이 아닌 경우
     number_a = number_a / 10; // 마지막 숫자 취소
+    FND.showNumberDec(number_a);
     Serial.print("a에 저장된 숫자 :");
     Serial.print(number_a);
     Serial.print("\n");
   } else if (sw == 1 || sw == 2){ // 두번째 입력 받을 차례이며
      if(number_b != 0){ // 0이 아닌 경우
       number_b = number_b / 10; // 마지막 숫자 취소
+      FND.showNumberDec(number_b);
       Serial.print("b에 저장된 숫자 :");
       Serial.print(number_b);
       Serial.print("\n");
@@ -117,7 +130,6 @@ void cancle(){    // 숫자 취소
 int numberset(String data){ // 필요 기능 숫자로 변경
   if(data == "5D"){ // 전원
     case_num = 14;
-    init_num = 0;
   }else if(data == "97"){
     case_num = 0;
   }else if(data == "CF"){
