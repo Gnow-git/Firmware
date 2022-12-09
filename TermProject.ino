@@ -71,13 +71,25 @@ void caculator(int num){
       Serial.print("합산 :");
       Serial.print(total);
       Serial.print("\n");
+    number_a = total; // 합산 결과를 첫번째 숫자로
+    number_b = 0;
+    sw = 0;
   }else if(num == 13 && sw == 2){ // 빼기 결과
      total = number_a - number_b;
       Serial.print("빼기 :");
       Serial.print(total);
       Serial.print("\n");
-  }
-   
+    number_a = total; // 합산 결과를 첫번째 숫자로
+    number_b = 0;
+    sw = 0;
+  }else if(num == 13){  // 첫번째 숫자 입력 후 엔터를 입력 했을 경우
+    total = number_a;
+    Serial.print("결과 :");
+      Serial.print(total);
+      Serial.print("\n");
+    number_a = total; // 합산 결과를 첫번째 숫자로
+    number_b = 0;
+  } 
 }
 
 void cancle(){    // 숫자 취소
@@ -102,7 +114,7 @@ void cancle(){    // 숫자 취소
     }
 }
 
-int numberset(String data){
+int numberset(String data){ // 필요 기능 숫자로 변경
   if(data == "5D"){ // 전원
     case_num = 14;
     init_num = 0;
